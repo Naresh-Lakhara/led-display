@@ -1,135 +1,227 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>LED Display</title>
+    <title>LED Display</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            background: black;
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        #wrapper {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: hidden;
+            position: relative;
+        }
+        #display {
+            white-space: nowrap;
+            display: inline-block;
+            position: absolute;
+            font-size: 90px;
+            font-weight: 500;
+            color: #00ffcc;
+            text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc;
+            animation: scrollText 10s linear infinite;
+            transition: color 0.5s ease;
+        }
+        #animation-label {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            font-family: monospace;
+            font-size: 16px;
+            color: #0ff;
+            text-shadow: 0 0 5px #0ff;
+            user-select: none;
+            pointer-events: none;
+            opacity: 0.7;
+        }
 
-  <!-- Orbitron font -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+        @keyframes scrollText {
+            0% { left: 100%; }
+            100% { left: -100%; }
+        }
+        @keyframes blurPulse {
+            0%, 100% { filter: blur(0); color: #00ffcc; }
+            50% { filter: blur(2px); color: #00ffff; }
+        }
+        @keyframes zigzagMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(5px, -5px) rotate(2deg); }
+            50% { transform: translate(10px, 0) rotate(0deg); }
+            75% { transform: translate(5px, 5px) rotate(-2deg); }
+        }
+        @keyframes curveWave {
+            0%, 100% { transform: translateY(0); }
+            25% { transform: translateY(-15px); }
+            50% { transform: translateY(0); }
+            75% { transform: translateY(15px); }
+        }
+        @keyframes zoomPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      background: black;
-      font-family: 'Orbitron', sans-serif;
-      overflow: hidden;
-    }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
 
-    #wrapper {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-    }
-
-    #display {
-      position: absolute;
-      white-space: nowrap;
-      font-size: 8vw;
-      font-weight: 500;
-      color: #00ffcc;
-      text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc;
-      animation: scrollText 10s linear infinite;
-    }
-
-    @keyframes scrollText {
-      0% { left: 100%; }
-      100% { left: -100%; }
-    }
-
-    /* Optional: Force landscape hint */
-    @media screen and (orientation: portrait) {
-      #wrapper::after {
-        content: "Please rotate your device to landscape.";
-        color: white;
-        font-size: 5vw;
-        text-align: center;
-        position: absolute;
-        width: 100%;
-        padding: 20px;
-        background: black;
-        z-index: 1000;
-      }
-
-      #display {
-        display: none !important;
-      }
-    }
-  </style>
+        .wavezoom span {
+            display: inline-block;
+            animation-name: waveZoomAnim;
+            animation-duration: 2.5s;
+            animation-iteration-count: infinite;
+            animation-timing-function: ease-in-out;
+            margin-right: 8px;
+        }
+        @keyframes waveZoomAnim {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.3); }
+        }
+    </style>
 </head>
 <body>
-  <div id="wrapper">
-    <div id="display">Loading...</div>
-  </div>
+    <div id="wrapper">
+        <div id="display">
+            <div id="scrollingText" style="display: inline-block; white-space: nowrap;"></div>
+        </div>
+        <div id="animation-label"></div>
+    </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const display = document.getElementById("display");
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const display = document.getElementById("display");
+        const scrollText = document.getElementById("scrollingText");
+        const animLabel = document.getElementById("animation-label");
 
-    function getRandomColor() {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
-    }
-
-    // Change color every second
-    setInterval(() => {
-      const newColor = getRandomColor();
-      display.style.color = newColor;
-      display.style.textShadow = `0 0 5px ${newColor}, 0 0 10px ${newColor}`;
-    }, 1000);
-
-    // Socket message handler
-    const socket = io();
-    socket.on("update", (msg) => {
-      if (!msg.trim()) {
-        display.innerText = 'Loading...';
-      } else {
-        display.innerText = msg;
-      }
-
-      // Restart animation
-      display.style.animation = 'none';
-      void display.offsetWidth;
-      display.style.animation = 'scrollText 10s linear infinite';
-    });
-
-    // Wake lock
-    if ('wakeLock' in navigator) {
-      let wakeLock = null;
-
-      async function requestWakeLock() {
-        try {
-          wakeLock = await navigator.wakeLock.request('screen');
-          console.log('Wake Lock active');
-          wakeLock.addEventListener('release', () => {
-            console.log('Wake Lock released');
-          });
-        } catch (err) {
-          console.error(`${err.name}: ${err.message}`);
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
         }
-      }
 
-      requestWakeLock();
+        setInterval(() => {
+            const newColor = getRandomColor();
+            display.style.color = newColor;
+            display.style.textShadow = `0 0 5px ${newColor}, 0 0 10px ${newColor}`;
+        }, 1000);
 
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          requestWakeLock();
+        function resetAnimations() {
+            display.style.animation = 'scrollText 10s linear infinite';
+            scrollText.style.animation = 'none';
+            scrollText.classList.remove('wavezoom');
+            scrollText.innerHTML = '';
+            display.style.left = '0';
+            display.style.right = 'auto';
+            display.style.textAlign = 'left';
         }
-      });
-    } else {
-      console.warn('Wake Lock API not supported.');
-    }
-  </script>
+
+        function applyWaveZoom(text) {
+            scrollText.innerHTML = '';
+            scrollText.classList.add('wavezoom');
+            for (let i = 0; i < text.length; i++) {
+                const span = document.createElement('span');
+                span.textContent = text[i];
+                span.style.animationDelay = (i * 0.15) + 's';
+                scrollText.appendChild(span);
+            }
+        }
+
+        function setAnimations(type, msg) {
+            const scroll = 'scrollText 10s linear infinite';
+            const blur = 'blurPulse 3s ease-in-out infinite';
+            const zigzag = 'zigzagMove 1.5s ease-in-out infinite';
+            const curve = 'curveWave 2.5s ease-in-out infinite';
+            const fade = 'fadeInOut 3s ease-in-out infinite';
+
+            animLabel.textContent = '';
+            resetAnimations();
+
+            switch(type) {
+                case 'blur':
+                    display.style.animation = `${scroll}, ${blur}`;
+                    animLabel.textContent = 'Animation: Blur Pulse';
+                    scrollText.textContent = msg;
+                    break;
+                case 'zigzag':
+                    display.style.animation = `${scroll}, ${zigzag}`;
+                    animLabel.textContent = 'Animation: Zigzag Move';
+                    scrollText.textContent = msg;
+                    break;
+                case 'blur+zigzag':
+                    display.style.animation = `${scroll}, ${blur}, ${zigzag}`;
+                    animLabel.textContent = 'Animation: Blur + Zigzag';
+                    scrollText.textContent = msg;
+                    break;
+                case 'curve':
+                    display.style.animation = `${scroll}, ${curve}`;
+                    animLabel.textContent = 'Animation: Curve Wave';
+                    scrollText.textContent = msg;
+                    break;
+                case 'curve+blur':
+                    display.style.animation = `${scroll}, ${curve}, ${blur}`;
+                    animLabel.textContent = 'Animation: Curve + Blur';
+                    scrollText.textContent = msg;
+                    break;
+                case 'wavezoom':
+                    display.style.animation = scroll;
+                    applyWaveZoom(msg);
+                    animLabel.textContent = 'Animation: Wave + Zoom';
+                    break;
+                case 'fadeinout':
+                    display.style.animation = 'none';
+                    scrollText.style.animation = fade;
+                    display.style.left = '50%';
+                    display.style.transform = 'translateX(-50%)';
+                    display.style.textAlign = 'center';
+                    animLabel.textContent = 'Animation: Fade In-Out';
+                    scrollText.textContent = msg;
+                    break;
+                case 'none':
+                    display.style.animation = 'none';
+                    animLabel.textContent = 'Animation: None';
+                    scrollText.textContent = msg;
+                    break;
+                default:
+                    display.style.animation = scroll;
+                    animLabel.textContent = 'Animation: Default Scroll';
+                    scrollText.textContent = msg;
+            }
+        }
+
+        const socket = io();
+        socket.on("update", (data) => {
+            if (!data || data.trim() === '') {
+                scrollText.textContent = 'Loading...';
+                display.style.animation = 'none';
+                animLabel.textContent = '';
+                return;
+            }
+
+            let [msg, anim] = data.split('|');
+            msg = msg.trim();
+            anim = anim ? anim.trim() : '';
+
+            if (!msg) {
+                scrollText.textContent = 'Loading...';
+                display.style.animation = 'none';
+                animLabel.textContent = '';
+                return;
+            }
+
+            setAnimations(anim, msg);
+        });
+    </script>
 </body>
 </html>
