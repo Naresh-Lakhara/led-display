@@ -9,38 +9,32 @@
       box-sizing: border-box;
     }
 
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
+    body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #0a0a0a;
       color: #eee;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
 
     .container {
-      height: 100%;
-      width: 100%;
-      padding: 30px 20px;
       background: #121212;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .form-box {
-      width: 100%;
+      padding: 30px 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.1);
       max-width: 400px;
-      display: flex;
-      flex-direction: column;
+      width: 90%;
+      text-align: center;
     }
 
     h2 {
       color: #00ffc3;
       text-shadow: 0 0 8px #00ffc3;
       margin-bottom: 30px;
-      text-align: center;
     }
 
     input, select {
@@ -105,7 +99,6 @@
       font-weight: 600;
       opacity: 0;
       transition: opacity 0.4s ease;
-      text-align: center;
     }
 
     .message.visible {
@@ -113,17 +106,16 @@
     }
 
     @media (max-width: 480px) {
-      h2 {
-        font-size: 22px;
-        margin-bottom: 20px;
+      .container {
+        padding: 20px;
       }
 
-      input, select, button {
-        font-size: 16px;
-        height: 48px;
+      h2 {
+        font-size: 20px;
       }
 
       button {
+        font-size: 16px;
         padding: 12px;
       }
     }
@@ -132,25 +124,23 @@
 <body>
 
   <div class="container">
-    <div class="form-box">
-      <h2>Send Message to LED</h2>
+    <h2>Send Message to LED</h2>
 
-      <input id="msg" type="text" placeholder="Enter message" />
+    <input id="msg" type="text" placeholder="Enter message" />
 
-      <select id="animation">
-        <option value="">Default Scroll</option>
-        <option value="blur">Blur Pulse</option>
-        <option value="zigzag">Zigzag Move</option>
-        <option value="blur+zigzag">Blur + Zigzag</option>
-        <option value="curve">Curve Wave</option>
-        <option value="curve+blur">Curve + Blur</option>
-        <option value="wavezoom">Wave + Zoom</option>
-        <option value="fadeinout">Fade In-Out</option>
-      </select>
+    <select id="animation">
+      <option value="">Default Scroll</option>
+      <option value="blur">Blur Pulse</option>
+      <option value="zigzag">Zigzag Move</option>
+      <option value="blur+zigzag">Blur + Zigzag</option>
+      <option value="curve">Curve Wave</option>
+      <option value="curve+blur">Curve + Blur</option>
+      <option value="wavezoom">Wave + Zoom</option>
+      <option value="fadeinout">Fade In-Out</option>
+    </select>
 
-      <button onclick="sendMessage()">🚀 Send</button>
-      <div id="message" class="message"></div>
-    </div>
+    <button onclick="sendMessage()">🚀 Send</button>
+    <div id="message" class="message"></div>
   </div>
 
   <script>
@@ -180,16 +170,17 @@
         if (response.ok) {
           messageDiv.textContent = "Message sent successfully!";
           messageDiv.style.color = "#00ffc3";
+          messageDiv.classList.add("visible");          
+          setTimeout(() => messageDiv.classList.remove("visible"), 3000);
         } else {
           throw new Error("Failed to send message.");
         }
       } catch (error) {
         messageDiv.textContent = "Error sending message. Please try again.";
         messageDiv.style.color = "#ff4d4d";
+        messageDiv.classList.add("visible");
+        setTimeout(() => messageDiv.classList.remove("visible"), 3000);
       }
-
-      messageDiv.classList.add("visible");
-      setTimeout(() => messageDiv.classList.remove("visible"), 3000);
     }
   </script>
 </body>
