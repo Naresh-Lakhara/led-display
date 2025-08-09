@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Send Message</title>
+</head>
+<body>
+    <h2>Send Message to LED</h2>
+    <input id="msg" type="text" placeholder="Enter message">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        async function sendMessage() {
+            const msg = document.getElementById("msg").value;
+            await fetch("/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: msg })
+            });
+        }
+    </script>
+</body>
+</html>

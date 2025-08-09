@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LED Display</title>
+    <style>
+        body { background:black; color:lime; font-size:50px; text-align:center; }
+    </style>
+</head>
+<body>
+    <div id="display">Loading...</div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        socket.on("update", (msg) => {
+            document.getElementById("display").innerText = msg;
+        });
+    </script>
+</body>
+</html>
