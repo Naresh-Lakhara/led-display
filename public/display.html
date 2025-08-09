@@ -1,87 +1,135 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>LED Display</title>
-    <!-- Orbitron with lighter weight -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            background: black;
-            font-family: 'Orbitron', sans-serif;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>LED Display</title>
 
-        #wrapper {
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            overflow: hidden;
-            position: relative;
-        }
+  <!-- Orbitron font -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
 
-        #display {
-            white-space: nowrap;
-            display: inline-block;
-            position: absolute;
-            font-size: 90px;
-            font-weight: 500; /* Less bold */
-            color: #00ffcc;
-            text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc;
-            animation: scrollText 10s linear infinite;
-        }
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: black;
+      font-family: 'Orbitron', sans-serif;
+      overflow: hidden;
+    }
 
-        @keyframes scrollText {
-            0% {
-                left: 100%;
-            }
-            100% {
-                left: -100%;
-            }
-        }
-    </style>
+    #wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    #display {
+      position: absolute;
+      white-space: nowrap;
+      font-size: 8vw;
+      font-weight: 500;
+      color: #00ffcc;
+      text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc;
+      animation: scrollText 10s linear infinite;
+    }
+
+    @keyframes scrollText {
+      0% { left: 100%; }
+      100% { left: -100%; }
+    }
+
+    /* Optional: Force landscape hint */
+    @media screen and (orientation: portrait) {
+      #wrapper::after {
+        content: "Please rotate your device to landscape.";
+        color: white;
+        font-size: 5vw;
+        text-align: center;
+        position: absolute;
+        width: 100%;
+        padding: 20px;
+        background: black;
+        z-index: 1000;
+      }
+
+      #display {
+        display: none !important;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div id="wrapper">
-        <div id="display">Loading...</div>
-    </div>
+  <div id="wrapper">
+    <div id="display">Loading...</div>
+  </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const display = document.getElementById("display");
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const display = document.getElementById("display");
 
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
+    function getRandomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    // Change color every second
+    setInterval(() => {
+      const newColor = getRandomColor();
+      display.style.color = newColor;
+      display.style.textShadow = `0 0 5px ${newColor}, 0 0 10px ${newColor}`;
+    }, 1000);
+
+    // Socket message handler
+    const socket = io();
+    socket.on("update", (msg) => {
+      if (!msg.trim()) {
+        display.innerText = 'Loading...';
+      } else {
+        display.innerText = msg;
+      }
+
+      // Restart animation
+      display.style.animation = 'none';
+      void display.offsetWidth;
+      display.style.animation = 'scrollText 10s linear infinite';
+    });
+
+    // Wake lock
+    if ('wakeLock' in navigator) {
+      let wakeLock = null;
+
+      async function requestWakeLock() {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('Wake Lock active');
+          wakeLock.addEventListener('release', () => {
+            console.log('Wake Lock released');
+          });
+        } catch (err) {
+          console.error(`${err.name}: ${err.message}`);
         }
+      }
 
-        // Change text color every 1 second
-        setInterval(() => {
-            const newColor = getRandomColor();
-            display.style.color = newColor;
-            display.style.textShadow = `
-                0 0 5px ${newColor},
-                0 0 10px ${newColor}
-            `;
-        }, 1000);
+      requestWakeLock();
 
-        // Receive message from server
-        const socket = io();
-        socket.on("update", (msg) => {
-            display.innerText = msg;
-
-            display.style.animation = 'none';
-            void display.offsetWidth;
-            display.style.animation = 'scrollText 10s linear infinite';
-        });
-    </script>
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          requestWakeLock();
+        }
+      });
+    } else {
+      console.warn('Wake Lock API not supported.');
+    }
+  </script>
 </body>
 </html>
