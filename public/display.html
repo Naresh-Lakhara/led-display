@@ -30,6 +30,7 @@
             text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc;
             animation: scrollText 10s linear infinite;
             transition: color 0.5s ease;
+            left: 0; /* added explicit left for consistent positioning */
         }
         #animation-label {
             position: absolute;
@@ -42,6 +43,8 @@
             user-select: none;
             pointer-events: none;
             opacity: 0.7;
+            white-space: nowrap;
+            z-index: 10;
         }
 
         @keyframes scrollText {
@@ -86,6 +89,37 @@
             0%, 100% { transform: translateY(0) scale(1); }
             50% { transform: translateY(-20px) scale(1.3); }
         }
+
+        /* Responsive fixes */
+        @media (max-width: 600px) {
+            #display {
+                font-size: 40px;
+                white-space: normal;
+                position: relative;
+                left: auto !important;
+                right: auto !important;
+                text-align: center;
+                animation: none !important; /* optional: pause scroll on small devices */
+            }
+            #scrollingText {
+                display: block;
+                white-space: normal !important;
+            }
+            #animation-label {
+                position: fixed !important;
+                right: 10px;
+                bottom: 10px;
+                font-size: 14px;
+                background: rgba(0, 0, 0, 0.7);
+                padding: 4px 8px;
+                border-radius: 5px;
+                opacity: 0.9;
+                z-index: 1000;
+                white-space: nowrap;
+                pointer-events: none;
+                user-select: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -125,6 +159,7 @@
             display.style.left = '0';
             display.style.right = 'auto';
             display.style.textAlign = 'left';
+            display.style.transform = 'none';
         }
 
         function applyWaveZoom(text) {
@@ -145,39 +180,39 @@
             const curve = 'curveWave 2.5s ease-in-out infinite';
             const fade = 'fadeInOut 3s ease-in-out infinite';
 
-            animLabel.textContent = '';
+            // animLabel.textContent = '';
             resetAnimations();
 
             switch(type) {
                 case 'blur':
                     display.style.animation = `${scroll}, ${blur}`;
-                    animLabel.textContent = 'Animation: Blur Pulse';
+                    // animLabel.textContent = 'Animation: Blur Pulse';
                     scrollText.textContent = msg;
                     break;
                 case 'zigzag':
                     display.style.animation = `${scroll}, ${zigzag}`;
-                    animLabel.textContent = 'Animation: Zigzag Move';
+                    // animLabel.textContent = 'Animation: Zigzag Move';
                     scrollText.textContent = msg;
                     break;
                 case 'blur+zigzag':
                     display.style.animation = `${scroll}, ${blur}, ${zigzag}`;
-                    animLabel.textContent = 'Animation: Blur + Zigzag';
+                    // animLabel.textContent = 'Animation: Blur + Zigzag';
                     scrollText.textContent = msg;
                     break;
                 case 'curve':
                     display.style.animation = `${scroll}, ${curve}`;
-                    animLabel.textContent = 'Animation: Curve Wave';
+                    // animLabel.textContent = 'Animation: Curve Wave';
                     scrollText.textContent = msg;
                     break;
                 case 'curve+blur':
                     display.style.animation = `${scroll}, ${curve}, ${blur}`;
-                    animLabel.textContent = 'Animation: Curve + Blur';
+                    // animLabel.textContent = 'Animation: Curve + Blur';
                     scrollText.textContent = msg;
                     break;
                 case 'wavezoom':
                     display.style.animation = scroll;
                     applyWaveZoom(msg);
-                    animLabel.textContent = 'Animation: Wave + Zoom';
+                    // animLabel.textContent = 'Animation: Wave + Zoom';
                     break;
                 case 'fadeinout':
                     display.style.animation = 'none';
@@ -185,17 +220,17 @@
                     display.style.left = '50%';
                     display.style.transform = 'translateX(-50%)';
                     display.style.textAlign = 'center';
-                    animLabel.textContent = 'Animation: Fade In-Out';
+                    // animLabel.textContent = 'Animation: Fade In-Out';
                     scrollText.textContent = msg;
                     break;
                 case 'none':
                     display.style.animation = 'none';
-                    animLabel.textContent = 'Animation: None';
+                    // animLabel.textContent = 'Animation: None';
                     scrollText.textContent = msg;
                     break;
                 default:
                     display.style.animation = scroll;
-                    animLabel.textContent = 'Animation: Default Scroll';
+                    // animLabel.textContent = 'Animation: Default Scroll';
                     scrollText.textContent = msg;
             }
         }
@@ -205,7 +240,7 @@
             if (!data || data.trim() === '') {
                 scrollText.textContent = 'Loading...';
                 display.style.animation = 'none';
-                animLabel.textContent = '';
+                // animLabel.textContent = '';
                 return;
             }
 
@@ -216,7 +251,7 @@
             if (!msg) {
                 scrollText.textContent = 'Loading...';
                 display.style.animation = 'none';
-                animLabel.textContent = '';
+                // animLabel.textContent = '';
                 return;
             }
 
