@@ -13,7 +13,7 @@ app.use(express.static("public"));
 let latestMessage = "Welcome!";
 
 app.get("/", (req, res) => {
-    ret.send("Welcome Naresh");
+    res.send("Welcome Naresh");
 });
 app.post("/send", (req, res) => {
     latestMessage = req.body.message;
@@ -26,4 +26,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(3000, () => console.log("Server running on port 3000"));
+
 
