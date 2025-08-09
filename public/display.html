@@ -30,7 +30,7 @@
             text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc;
             animation: scrollText 10s linear infinite;
             transition: color 0.5s ease;
-            left: 0; /* added explicit left for consistent positioning */
+            left: 0;
         }
         #animation-label {
             position: absolute;
@@ -130,8 +130,6 @@
         <div id="animation-label"></div>
     </div>
 
-    <!-- ... baaki code same ... -->
-
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const display = document.getElementById("display");
@@ -146,6 +144,8 @@
                     wakeLock = await navigator.wakeLock.request('screen');
                     wakeLock.addEventListener('release', () => {
                         console.log('Wake Lock was released');
+                        // Automatically try to re-acquire wake lock
+                        requestWakeLock();
                     });
                     console.log('Wake Lock is active');
                 }
@@ -154,7 +154,6 @@
             }
         }
 
-        // Release wake lock when page is hidden and request again when visible
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden' && wakeLock !== null) {
                 wakeLock.release();
