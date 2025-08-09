@@ -1,97 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>LED Display Fullscreen</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
-<style>
-  html, body {
-    margin: 0; padding: 0;
-    height: 100%; width: 100%;
-    overflow: hidden;
-    background: black;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  #display {
-    position: absolute;
-    white-space: nowrap;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: 15vw;
-    color: #00ffcc;
-    text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
-    animation: scrollText 10s linear infinite;
-    top: 50%;
-    left: 100%;
-    transform: translateY(-50%);
-  }
-  @keyframes scrollText {
-    0% { left: 100%; }
-    100% { left: -100%; }
-  }
-  
-  /* Portrait mode adjustments */
-  @media (orientation: portrait) {
-    #display {
-      transform: rotate(90deg) translateY(-50%);
-      transform-origin: left top;
-      font-size: 25vw;
-      top: 50%;
-      left: 50%;
-      animation: scrollTextPortrait 10s linear infinite;
-    }
+    <title>LED Display</title>
+    <!-- Orbitron with lighter weight -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
     
-    @keyframes scrollTextPortrait {
-      0% { top: 100%; }
-      100% { top: -100%; }
-    }
-  }
-</style>
+    <style>
+        body {
+            background: black;
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        #wrapper {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #display {
+            white-space: nowrap;
+            display: inline-block;
+            position: absolute;
+            font-size: 90px;
+            font-weight: 500; /* Less bold */
+            color: #00ffcc;
+            text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc;
+            animation: scrollText 10s linear infinite;
+        }
+
+        @keyframes scrollText {
+            0% {
+                left: 100%;
+            }
+            100% {
+                left: -100%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="display">Welcome to LED Display!</div>
+    <div id="wrapper">
+        <div id="display">Loading...</div>
+    </div>
 
-  <script>
-    const display = document.getElementById('display');
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const display = document.getElementById("display");
 
-    function getRandomColor() {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for(let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
-    }
-
-    setInterval(() => {
-      const newColor = getRandomColor();
-      display.style.color = newColor;
-      display.style.textShadow = `0 0 10px ${newColor}, 0 0 20px ${newColor}`;
-    }, 1000);
-
-    if ('wakeLock' in navigator) {
-      let wakeLock = null;
-      async function requestWakeLock() {
-        try {
-          wakeLock = await navigator.wakeLock.request('screen');
-          wakeLock.addEventListener('release', () => {
-            console.log('Wake Lock released');
-          });
-          console.log('Wake Lock active');
-        } catch (err) {
-          console.error(err.name, err.message);
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
         }
-      }
-      requestWakeLock();
-      document.addEventListener('visibilitychange', () => {
-        if (wakeLock !== null && document.visibilityState === 'visible') {
-          requestWakeLock();
-        }
-      });
-    }
-  </script>
+
+        // Change text color every 1 second
+        setInterval(() => {
+            const newColor = getRandomColor();
+            display.style.color = newColor;
+            display.style.textShadow = `
+                0 0 5px ${newColor},
+                0 0 10px ${newColor}
+            `;
+        }, 1000);
+
+        // Receive message from server
+        const socket = io();
+        socket.on("update", (msg) => {
+            display.innerText = msg;
+
+            display.style.animation = 'none';
+            void display.offsetWidth;
+            display.style.animation = 'scrollText 10s linear infinite';
+        });
+    </script>
 </body>
 </html>
