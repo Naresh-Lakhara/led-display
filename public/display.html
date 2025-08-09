@@ -130,11 +130,39 @@
         <div id="animation-label"></div>
     </div>
 
+    <!-- ... baaki code same ... -->
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const display = document.getElementById("display");
         const scrollText = document.getElementById("scrollingText");
         const animLabel = document.getElementById("animation-label");
+
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => {
+                        console.log('Wake Lock was released');
+                    });
+                    console.log('Wake Lock is active');
+                }
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+
+        // Release wake lock when page is hidden and request again when visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            } else if (document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
 
         function getRandomColor() {
             const letters = '0123456789ABCDEF';
@@ -180,12 +208,14 @@
             const curve = 'curveWave 2.5s ease-in-out infinite';
             const fade = 'fadeInOut 3s ease-in-out infinite';
 
-            
             resetAnimations();
+
+            // Request wake lock here to keep screen ON when text animation runs
+            requestWakeLock();
 
             switch(type) {
                 case 'blur':
-                    display.style.animation = `${scroll}, ${blur}`;                    
+                    display.style.animation = `${scroll}, ${blur}`;
                     scrollText.textContent = msg;
                     break;
                 case 'zigzag':
@@ -193,11 +223,11 @@
                     scrollText.textContent = msg;
                     break;
                 case 'blur+zigzag':
-                    display.style.animation = `${scroll}, ${blur}, ${zigzag}`;                    
+                    display.style.animation = `${scroll}, ${blur}, ${zigzag}`;
                     scrollText.textContent = msg;
                     break;
                 case 'curve':
-                    display.style.animation = `${scroll}, ${curve}`;                    
+                    display.style.animation = `${scroll}, ${curve}`;
                     scrollText.textContent = msg;
                     break;
                 case 'curve+blur':
@@ -213,15 +243,15 @@
                     scrollText.style.animation = fade;
                     display.style.left = '50%';
                     display.style.transform = 'translateX(-50%)';
-                    display.style.textAlign = 'center';                    
+                    display.style.textAlign = 'center';
                     scrollText.textContent = msg;
                     break;
                 case 'none':
-                    display.style.animation = 'none';                    
+                    display.style.animation = 'none';
                     scrollText.textContent = msg;
                     break;
                 default:
-                    display.style.animation = scroll;                    
+                    display.style.animation = scroll;
                     scrollText.textContent = msg;
             }
         }
@@ -230,7 +260,7 @@
         socket.on("update", (data) => {
             if (!data || data.trim() === '') {
                 scrollText.textContent = 'Loading...';
-                display.style.animation = 'none';                
+                display.style.animation = 'none';
                 return;
             }
 
@@ -240,12 +270,13 @@
 
             if (!msg) {
                 scrollText.textContent = 'Loading...';
-                display.style.animation = 'none';                
+                display.style.animation = 'none';
                 return;
             }
 
             setAnimations(anim, msg);
         });
     </script>
+
 </body>
 </html>
