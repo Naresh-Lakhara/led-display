@@ -170,8 +170,7 @@
         if (response.ok) {
           messageDiv.textContent = "Message sent successfully!";
           messageDiv.style.color = "#00ffc3";
-          messageDiv.classList.add("visible");
-          msgInput.value = "";  // Clear input
+          messageDiv.classList.add("visible");          
           setTimeout(() => messageDiv.classList.remove("visible"), 3000);
         } else {
           throw new Error("Failed to send message.");
